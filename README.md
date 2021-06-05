@@ -1,80 +1,62 @@
 # practica1
-@ num_in.s
-@ get user input ready to do maths
+PRACTICA CON DOCKER EN ARM32 Y GITHUB REPORTANDO LOS AVANCES O TERMINACIÓN DE LA PRACTICA.
+Objetivo: Numeros.s
+Cuando buscamos imprimir números en un programa reciente, tuvimos que hacer una conversión entre un número binario almacenado en la computadora y una serie de caracteres ascii que podrían representar un número denario.
 
-@ registers
-@ r1 - pointer to the buffer
-@ r2 - used to load digits
-@ r3 - counts digits
-@ r4 - multiplier
-@ r6 - counter
-@ r0 - return value
+Se enfrenta el mismo problema cuando queremos obtener un número del usuario y hacer algo con él en un programa ASM. Lo que sigue es una solución simple a este problema. Se toma una cadena de caracteres del teclado y se convierten en un número que se almacena en r0.
 
-.section	.bss
-.comm buffer, 48	@ reserve 48 byte buffer
+Se tienen algunas funciones básicas que pueda usar para crear programas que puedan realizar operaciones matemáticas, así como manejar Entradas/Salidas.
 
-.section	.data
-msg:
-	.ascii	"Enter a number: "
-msgLen = . - msg
+⌨️ GIT REPO INICIO ⌨️
+NOTA: De usar el nevagador WEB, debe usar $ git pull para actualizar el DOCKER y sincronizarlo.
+cd
+git clone https://github.com/tectijuana/li20b3ej-2-Armenta99 (CAMBIAR A SU REPOSITORIO DE ESTUDIANTE)
+cd li20b3ej-2-Armenta99                                      (CAMBIAR A SU REPOSITORIO DE ESTUDIANTE)
+wget https://github.com/tectijuana/interfaz/raw/master/arm32/codigo/numeros.s
 
-.section	.text
-.globl	_start
-_start:
+git config --global user.email "SUCORREO@tectijuana.edu.mx"
+git config --global user.name "Profe pongame 0 en esta practica por no cambiar el nombre ni correo, por favor"
 
-mov r0, $1		@ print program's opening message	
-ldr r1, =msg
-ldr r2, =msgLen
-mov r7, $4
-svc $0
+nano Makefile
+⌨️ Makefile (Obligatorio usat tecla TAB para identar no espacios, pues le marca error, asi funciona el CMAKE) ⌨️
+#Makefile
+all: numeros
+numeros: numeros.o
+  ld -o $@ $+
+numeros.o: numeros.s
+  as -g -mfpu=vfpv2 -o  $@ $+
+clean:
+  rm -vf numeros *.o
+⌨️ FLUJO DE LA PRACTICA: Editar, compilar com MAKE, usar GDB, etc. ⌨️
+Aqui es el trabajo de dia a dia.
+make
+./numeros 
+echo $?
+echo   (hora de purgar para subir el codigo a su GitHub)
+make clean
+⌨️ GIT REPO SUBIR TRABAJO AVANCES o TERMINADO ⌨️
+NOTA: Se asume que no hay edición en navegador de internet, de lo contrario usar $ git pull (para sincronizar)
+git add .      (Si un punto al final, es *.*  es todo lo que esta en ese directorio)
+git status
+git commit -m "/////PONER MENSAJE DE APORTACION////"
+🖥️ respuesta de la consola 🖥️
+[main 9ec1dc1] 
+ 2 files changed, 87 insertions(+)
+ create mode 100644 code2/Makefile
+ create mode 100644 code2/numeros.s
+git push
+🖥️ respuesta de la consola..🖥️
+Username for 'https://github.com': XXXXXX@tectijuana.edu.mx
+Password for 'https://XXXXXXXX@tectijuana.edu.mx@github.com': 
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 1.24 KiB | 74.00 KiB/s, done.
+Total 5 (delta 1), reused 0 (delta 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/tectijuana/li20b3ej-2-Armenta99
+   d0c468d..9ec1dc1  main -> main
+🌎 Y listo puede ver el contenido en GitHUB.com 🌎
 
-                        @ get input 
-mov r7, $3		@ 3 is the "read" syscall
-mov r0, $1		
-ldr r1, =buffer
-mov r2, $0x30
-svc $0
-
-                        @ prepare to convert ascii to number 
-ldrb r2, [r1]		@ load first char 
-mov r3, $0		@ initialize r3 as a counter
-
-pushDigits:
-stmfd	sp!, {r2}	@ push digit onto stack
-add	r3, r3, $1	@ increment counter
-ldrb	r2, [r1, #1]!	@ load next digit (use writeback)
-cmp	r2, $0xA	@ check for ascii code 10
-beq 	convDigits      @ jump to conversion section
-bne 	pushDigits      @ or carry on pushing
-
-convDigits:
-mov r4, $1		@ initialize multiplier to 1
-mov r0, $0 		@ initialize number
-mov r6, $0		@ initialize counter
-
-jumpBack:
-ldmfd	sp!, {r2}	@ pop a digit
-cmp 	r2, $0x30	@ is it a digit?
-blt	error
-cmp	r2, $0x39       @ sure?
-bgt	error
-sub	r2, r2, $0x30	@ take away 48, to get the digit value
-mul	r2, r4, r2	@ multiply it by r4
-add	r0, r0, r2	@ add to r0
-add	r6, r6, $1	@ increment counter		
-cmp	r6, r3		@ check to see if done
-beq 	exit
-mov     r5, r4, lsl $3        @ do multiply by ten using adds and shifts
-add     r4, r5, r4, lsl $1    @ x * 8 + x * 2 = x * 10
-bal	jumpBack
-
-@ Least significant byte available via "echo $?"
-
-error:
-mov r0, $-1
-bal exit
-
-exit:
-mov r7, $1	@ exit syscall
-svc $0		@ wake kernel
-.end
+SUERTE !!
